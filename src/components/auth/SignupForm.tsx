@@ -36,9 +36,34 @@ export function SignupForm() {
   });
 
   useEffect(() => {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    setDetectedTimezone(tz);
-    setValue("timezone", tz);
+    async function detectTimezone() {
+      const ipApis = [
+        { url: 'https://ipapi.co/json/', extract: (d: Record<string, string>) => d.timezone },
+        { url: 'https://ipwho.is/', extract: (d: Record<string, Record<string, string>>) => d.timezone?.id },
+      ];
+
+      for (const api of ipApis) {
+        try {
+          const res = await fetch(api.url, { signal: AbortSignal.timeout(3000) });
+          if (res.ok) {
+            const data = await res.json();
+            const tz = api.extract(data);
+            if (tz) {
+              setDetectedTimezone(tz);
+              setValue("timezone", tz);
+              return;
+            }
+          }
+        } catch {
+          // Try next API
+        }
+      }
+
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      setDetectedTimezone(tz);
+      setValue("timezone", tz);
+    }
+    detectTimezone();
   }, [setValue]);
 
   const timezone = watch("timezone");

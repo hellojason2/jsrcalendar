@@ -21,13 +21,43 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
       setIsAutoDetected(false);
       return;
     }
-    try {
-      const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      setTimezoneState(detected);
+
+    // Detect timezone by IP address, fall back to browser Intl API
+    async function detectTimezone() {
+      // Try multiple IP geolocation APIs for reliability
+      const ipApis = [
+        { url: 'https://ipapi.co/json/', extract: (d: Record<string, string>) => d.timezone },
+        { url: 'https://ipwho.is/', extract: (d: Record<string, Record<string, string>>) => d.timezone?.id },
+      ];
+
+      for (const api of ipApis) {
+        try {
+          const res = await fetch(api.url, { signal: AbortSignal.timeout(3000) });
+          if (res.ok) {
+            const data = await res.json();
+            const tz = api.extract(data);
+            if (tz) {
+              setTimezoneState(tz);
+              setIsAutoDetected(true);
+              return;
+            }
+          }
+        } catch {
+          // This API failed, try next one
+        }
+      }
+
+      // All IP APIs failed, fall back to browser detection
+      try {
+        const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        setTimezoneState(detected);
+      } catch {
+        setTimezoneState('UTC');
+      }
       setIsAutoDetected(true);
-    } catch {
-      setTimezoneState('UTC');
     }
+
+    detectTimezone();
   }, []);
 
   const setTimezone = (tz: string) => {
