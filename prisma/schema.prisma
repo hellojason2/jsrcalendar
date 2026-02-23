@@ -1,14 +1,127 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  firstName     String
+  lastName      String
+  passwordHash  String
+  timezone      String   @default("UTC")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  meetingsCreated  Meeting[]       @relation("MeetingCreator")
+  participants     Participant[]
+  availabilities   Availability[]
+}
+
+model Meeting {
+  id            String        @id @default(cuid())
+  title         String
+  description   String?
+  location      String?
+  duration      Int
+  type          MeetingType   @default(POLL)
+  status        MeetingStatus @default(PENDING)
+
+  proposedTime   DateTime?
+  dateRangeStart DateTime?
+  dateRangeEnd   DateTime?
+  confirmedTime  DateTime?
+
+  creatorId     String
+  creator       User          @relation("MeetingCreator", fields: [creatorId], references: [id])
+
+  shareToken    String        @unique @default(cuid())
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  participants  Participant[]
+  timeSlots     TimeSlot[]
+}
+
+enum MeetingType {
+  FIXED
+  POLL
+}
+
+enum MeetingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model Participant {
+  id          String            @id @default(cuid())
+  meetingId   String
+  meeting     Meeting           @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  userId      String?
+  user        User?             @relation(fields: [userId], references: [id])
+  guestEmail  String?
+  guestName   String?
+
+  isGuest     Boolean           @default(false)
+  guestToken  String?           @unique @default(cuid())
+
+  status      ParticipantStatus @default(PENDING)
+  timezone    String            @default("UTC")
+  accessToken String            @unique @default(cuid())
+
+  respondedAt DateTime?
+  createdAt   DateTime          @default(now())
+
+  availabilities Availability[]
+
+  @@unique([meetingId, userId])
+  @@unique([meetingId, guestEmail])
+}
+
+enum ParticipantStatus {
+  PENDING
+  AVAILABLE
+  UNAVAILABLE
+  RESPONDED
+}
+
+model TimeSlot {
+  id          String   @id @default(cuid())
+  meetingId   String
+  meeting     Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  startTime   DateTime
+  endTime     DateTime
+
+  createdAt   DateTime @default(now())
+
+  availabilities Availability[]
+}
+
+model Availability {
+  id            String      @id @default(cuid())
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  userId        String?
+  user          User?       @relation(fields: [userId], references: [id])
+
+  timeSlotId    String?
+  timeSlot      TimeSlot?   @relation(fields: [timeSlotId], references: [id], onDelete: Cascade)
+
+  startTime     DateTime?
+  endTime       DateTime?
+
+  isAvailable   Boolean     @default(true)
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([participantId, timeSlotId])
 }
