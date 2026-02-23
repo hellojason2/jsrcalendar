@@ -30,6 +30,7 @@ export function SignupForm() {
     watch,
     formState: { errors },
   } = useForm<SignupFormValues>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(signupSchema) as any,
     defaultValues: { timezone: "UTC" },
   });

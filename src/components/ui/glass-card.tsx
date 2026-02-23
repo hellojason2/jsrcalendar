@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, HTMLMotionProps } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { forwardRef } from 'react';
 
@@ -14,7 +14,8 @@ interface GlassCardProps {
 }
 
 export const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
-  ({ children, className, hover = false, active = false, onClick, as = 'div' }, ref) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  ({ children, className, hover = false, active = false, onClick, as: _as = 'div' }, ref) => {
     if (hover) {
       return (
         <motion.div
