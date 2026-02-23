@@ -2,6 +2,9 @@
   "name": "candidly-calendar",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -51,6 +54,6 @@
     "postcss": "^8",
     "prisma": "^7.4.1",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   }
 }
