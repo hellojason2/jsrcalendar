@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { CreateMeetingForm } from '@/components/meetings/CreateMeetingForm';
 import { PageTransition } from '@/components/ui/page-transition';
 
