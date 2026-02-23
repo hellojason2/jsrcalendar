@@ -24,7 +24,7 @@ ENV NEXTAUTH_URL="http://localhost:3000"
 
 RUN npm run build
 
-# Production image
+# Production image — include full node_modules for prisma db push
 FROM base AS runner
 RUN apk add --no-cache openssl
 WORKDIR /app
@@ -39,9 +39,7 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules ./node_modules
 
 USER nextjs
 
@@ -50,4 +48,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["sh", "-c", "node node_modules/prisma/build/index.js db push --skip-generate && node server.js"]
+# Run prisma db push to sync schema, then start Next.js
+CMD ["sh", "-c", "npx prisma db push --skip-generate && node server.js"]
