@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useTimezone } from '@/hooks/useTimezone';
 import { utcToLocal, formatInTimezone } from '@/lib/timezone';
 import { Button } from '@/components/ui/button';
+import toast from 'react-hot-toast';
 
 interface AvailabilityGridProps {
   dateRange: { start: string; end: string }; // UTC ISO strings
@@ -128,6 +129,7 @@ export function AvailabilityGrid({
       };
     });
     onSubmit(availabilities);
+    toast.success('Availability submitted!');
   }, [selectedSlots, slotSize, onSubmit]);
 
   const days = Array.from(dayGroups.entries());

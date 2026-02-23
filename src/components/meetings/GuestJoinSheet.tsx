@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { joinAsGuest } from '@/actions/guest';
+import toast from 'react-hot-toast';
 
 interface GuestJoinSheetProps {
   open: boolean;
@@ -42,9 +43,11 @@ export function GuestJoinSheet({ open, onOpenChange, meetingId, onJoined }: Gues
       // Store guest token in localStorage
       localStorage.setItem(`candidly_guest_${meetingId}`, result.guestToken!);
       onJoined(result.guestToken!, result.participantId!);
+      toast.success('You\'ve joined the meeting!');
       onOpenChange(false);
     } catch {
       setError('Something went wrong. Please try again.');
+      toast.error('Failed to join meeting. Please try again.');
     } finally {
       setLoading(false);
     }

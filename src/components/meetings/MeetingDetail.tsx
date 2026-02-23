@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 import { GlassCard } from '@/components/ui/glass-card';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { LocalTime } from '@/components/timezone/LocalTime';
@@ -11,8 +11,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { confirmMeeting, cancelMeeting, sendReminder } from '@/actions/meeting';
 import { AnimatedContainer, AnimatedItem } from '@/components/ui/animated-container';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Meeting = any;
+
 interface MeetingDetailProps {
-  meeting: any; // Full meeting with relations
+  meeting: Meeting;
   isCreator: boolean;
 }
 
@@ -28,6 +31,7 @@ export function MeetingDetail({ meeting, isCreator }: MeetingDetailProps) {
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
+    toast.success('Share link copied to clipboard');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -36,9 +40,11 @@ export function MeetingDetail({ meeting, isCreator }: MeetingDetailProps) {
     setLoading(true);
     try {
       await confirmMeeting(meeting.id, selectedTime);
+      toast.success('Meeting time confirmed!');
       setConfirmDialogOpen(false);
     } catch (e) {
       console.error(e);
+      toast.error('Failed to confirm meeting');
     } finally {
       setLoading(false);
     }
@@ -48,21 +54,27 @@ export function MeetingDetail({ meeting, isCreator }: MeetingDetailProps) {
     setLoading(true);
     try {
       await cancelMeeting(meeting.id);
+      toast.success('Meeting cancelled');
       setCancelDialogOpen(false);
     } catch (e) {
       console.error(e);
+      toast.error('Failed to cancel meeting');
     } finally {
       setLoading(false);
     }
   };
 
   const handleReminder = async () => {
-    const result = await sendReminder(meeting.id);
-    alert(`Reminder sent to ${result.count} pending participants`);
+    try {
+      const result = await sendReminder(meeting.id);
+      toast.success(`Reminder sent to ${result.count} pending participants`);
+    } catch {
+      toast.error('Failed to send reminder');
+    }
   };
 
-  const respondedCount = meeting.participants.filter((p: any) => p.status === 'RESPONDED' || p.status === 'AVAILABLE').length;
-  const pendingCount = meeting.participants.filter((p: any) => p.status === 'PENDING').length;
+  const respondedCount = meeting.participants.filter((p: Meeting) => p.status === 'RESPONDED' || p.status === 'AVAILABLE').length;
+  const pendingCount = meeting.participants.filter((p: Meeting) => p.status === 'PENDING').length;
 
   return (
     <div className="space-y-6">
@@ -131,7 +143,7 @@ export function MeetingDetail({ meeting, isCreator }: MeetingDetailProps) {
               </tr>
             </thead>
             <tbody>
-              {meeting.participants.map((p: any) => {
+              {meeting.participants.map((p: Meeting) => {
                 const name = p.user ? `${p.user.firstName} ${p.user.lastName}` : p.guestName || 'Unknown';
                 const isCreatorParticipant = p.userId === meeting.creatorId;
                 const variant = isCreatorParticipant ? 'creator' : p.isGuest ? 'guest' : p.status === 'RESPONDED' || p.status === 'AVAILABLE' ? 'responded' : p.status === 'UNAVAILABLE' ? 'unavailable' : 'pending';

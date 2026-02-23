@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 import { cn } from '@/lib/utils';
 
 interface FormData {
@@ -125,9 +126,12 @@ export function CreateMeetingForm() {
       }
 
       const meeting = await res.json();
+      toast.success('Meeting created successfully!');
       router.push(`/meetings/${meeting.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      const message = err instanceof Error ? err.message : 'Something went wrong';
+      setError(message);
+      toast.error(message);
       setSubmitting(false);
     }
   }
