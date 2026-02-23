@@ -48,5 +48,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Run prisma db push to sync schema, then start Next.js
-CMD ["sh", "-c", "npx prisma db push --skip-generate && node server.js"]
+CMD ["node", "server.js"]
